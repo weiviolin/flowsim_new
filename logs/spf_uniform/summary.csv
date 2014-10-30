@@ -1,0 +1,8 @@
+ROUTING_MODE,spf
+DO_REROUTE,0
+n_EvFlowArrival,24003
+n_EvPacketIn,24002
+n_Reject,0
+n_EvFlowEnd,23936
+n_EvIdleTimeout,23936
+exec_time,97.402001
