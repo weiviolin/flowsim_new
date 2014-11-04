@@ -104,8 +104,10 @@ class SimCtrl:
         
 		# ---- Build gravity_table database ----
         self.gravity_table = self.build_gravity_weight(sim_core)
-
         self.anti_gravity_table = self.build_anti_gravity_weight(sim_core)
+
+        # ---- Build traditional ECMP path_db ---- #
+        #self.traditional_path_ecmp_dic = {}
 
     def build_anti_gravity_weight(self, sim_core):
         """Build an anti_gravity weight matrix.
@@ -320,7 +322,7 @@ class SimCtrl:
                         else:
                             path_db[(src, dst)] = self.build_pathset_yen(src, dst, \
                                                                          k=cfg.K_PATH)
-                    elif (cfg.ROUTING_MODE == 'ecmp'):
+                    elif (cfg.ROUTING_MODE == 'ecmp' or cfg.ROUTING_MODE == 'ecmp2'):
                         path_db[(src, dst)] = self.build_pathset_ecmp(src, dst)
                     elif (cfg.ROUTING_MODE == 'spf'):
                         path_db[(src, dst)] = self.build_pathset_spf(src, dst)
@@ -444,6 +446,8 @@ class SimCtrl:
         return [path]
 
 
+
+
     def is_feasible(self, path):
         """Check if path is feasible (without table overflow).
         """
@@ -475,6 +479,45 @@ class SimCtrl:
             return rd.choice(feasible_paths)
         except:
             return []   # No path available
+
+
+
+    def find_traditional_path_ecmp(self, src_node, dst_node):
+        """Traditiional ECMP routing: randomly choose among several ECMP routes.
+
+        Args:
+            src_ip (netaddr.IPAddress)
+            dst_ip (netaddr.IPAddress)
+
+        Returns:
+            list of strings: Chosen path
+        """
+        # build_path_ecmp
+        src_dst = []
+        src_dst = self.path_db[(src_node, dst_node)]
+
+        map_structure = {}
+        
+        for j in range(1, len(src_dst[0])):
+            for i in range(0, len(src_dst)):
+                if src_dst[i][j-1] not in map_structure.keys():
+                    map_structure[src_dst[i][j-1]] = [src_dst[i][j]]
+                else:
+                    if src_dst[i][j] not in map_structure[src_dst[i][j-1]]:
+                        map_structure[src_dst[i][j-1]].append(src_dst[i][j])
+
+
+                
+        # choose the right path
+
+        rd_value = src_node
+        path_choosing = [rd_value]
+        while(len(path_choosing) < len(src_dst[0])):
+            rd_value = rd.choice(map_structure[rd_value])
+            path_choosing.append(rd_value)
+
+        
+        return path_choosing
 
 
     def find_path_tablelb(self, src_node, dst_node):
@@ -530,6 +573,9 @@ class SimCtrl:
         dst_node = self.hosts[dst_ip]
         if (cfg.ROUTING_MODE == 'ecmp'):
             path = self.find_path_ecmp(src_node, dst_node)
+        elif (cfg.ROUTING_MODE == 'ecmp2'):
+            path = self.find_traditional_path_ecmp(src_node, dst_node)
+
         elif (cfg.ROUTING_MODE == 'tablelb'):
             path = self.find_path_tablelb(src_node, dst_node)
         else:

@@ -17,11 +17,12 @@ SIM_TIME    = 120.0
 
 DO_REROUTE  = 0              # Do elephant flow rerouting (please refer to paper draft)
 
-ROUTING_MODE = 'spf'           # Supported routing modes:
+ROUTING_MODE = 'ecmp2'           # Supported routing modes:
                                 # 'tablelb': Table load-balancing routing using k-path
                                 #               (default to Yen's k-path algorithm)
                                 # 'ecmp': Equal-cost multi-path
                                 # 'spf': Shortest-path first
+								# 'ecmp2': traditional ecmp
 K_PATH = 2                      # Number of predefined path per src-dst pair
 K_PATH_METHOD = 'yen'           # The algorithm used to set up k-path database
 
